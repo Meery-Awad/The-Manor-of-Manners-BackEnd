@@ -123,8 +123,6 @@ exports.uploadVideoLink = [
       const videoUrl = req.file.path;
       // جلب الكورس
       const course = await Course.findById(courseId);
-
-
       if (!course) return res.status(404).json({ message: "Course not found" });
       course.link = videoUrl;
       course.save()
@@ -155,4 +153,5 @@ exports.uploadVideoLink = [
     }
   }
 ];
+
 
