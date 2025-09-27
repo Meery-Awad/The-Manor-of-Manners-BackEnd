@@ -4,8 +4,6 @@ const { User, Course } = require("../data");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const multer = require("multer");
-const dotenv = require("dotenv");
-dotenv.config({ path: "../.env" });
 const SECRET_KEY = process.env.JWT_SECRET;
 
 // Cloudinary config
@@ -25,31 +23,62 @@ cloudinary.config({
 // Multer Cloudinary storage
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: {
-    folder: "course_videos",
-    resource_type: "video",
+  params: async (req, file) => {
+    let folder = "uploads";
+    let resource_type = "auto"; // Cloudinary يحدد النوع تلقائياً (image/video)
+    
+    if (file.mimetype.startsWith("image/")) folder = "user_images";
+    if (file.mimetype.startsWith("video/")) folder = "course_videos";
+
+    return { folder, resource_type };
   },
 });
+
 const upload = multer({ storage });
 
 exports.registerUser = async (req, res) => {
   try {
-    const { name, email, password, confirmPassword, img, date, time, endtime, courses } = req.body;
+   
+    await upload.single("img")(req, res, async function (err) {
+      if (err) {
+        console.error("Upload error:", err);
+        return res.status(500).json({ message: "Image upload error" });
+      }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: "User already exists" });
-    if (password !== confirmPassword) return res.status(400).json({ message: "Passwords do not match" });
+      const { name, email, password, confirmPassword, date, time, endtime, courses } = req.body;
 
-    // const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ name, email, password, img, date, time, endtime, courses });
-    await newUser.save();
+      const existingUser = await User.findOne({ email });
+      if (existingUser) return res.status(400).json({ message: "User already exists" });
 
-    res.json({ message: "User created successfully", user: newUser });
+      if (password.length < 8)
+        return res.status(400).json({ message: "Password must be at least 8 characters long" });
+
+      if (password !== confirmPassword)
+        return res.status(400).json({ message: "Passwords do not match" });
+
+      // upload img on cloudinary
+      const imgUrl = req.file ? req.file.path : null;
+
+      const newUser = new User({
+        name,
+        email,
+        password, 
+        img: imgUrl,
+        date,
+        time,
+        endtime,
+        courses
+      });
+
+      await newUser.save();
+      res.json({ message: "User created successfully", user: newUser });
+    });
   } catch (err) {
     console.error("Error adding user:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 exports.loginUser = async (req, res) => {
   try {
@@ -121,14 +150,11 @@ exports.uploadVideoLink = [
         return res.status(400).json({ message: "No file uploaded" });
       }
       const videoUrl = req.file.path;
-      // جلب الكورس
+   
       const course = await Course.findById(courseId);
       if (!course) return res.status(404).json({ message: "Course not found" });
       course.link = videoUrl;
       course.save()
-      console.log(course)
-
-      // جلب كل الـ bookedUsers دفعة وحدة
 
       const joinedUsersId = course.joinedUsers.map(u => u.userId);
 

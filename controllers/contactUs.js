@@ -13,7 +13,7 @@ exports.postContactUsDetails = async (req, res) => {
   }
 };
 
-// Route لجلب كل الرسائل (اختياري للإدارة)
+
 exports.getContactUsDetails =  async (req, res) => {
   try {
     const messages = await ContactMessage.find().sort({ createdAt: -1 });

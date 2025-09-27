@@ -1,8 +1,7 @@
 const { RtcTokenBuilder, RtcRole } = require("agora-access-token");
 const axios = require("axios");
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-dotenv.config({ path: "../.env" });
+;
 
 const APP_ID = process.env.AGORA_APP_ID;
 const APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE;
@@ -95,7 +94,7 @@ exports.startRecording = async (req, res) => {
       { headers: { Authorization: `Basic ${basicAuth}`, "Content-Type": "application/json" } }
     );
 
-    // رجع resourceId + sid عشان نقدر نوقف التسجيل بعدين
+    // Return the resourceId and sid so that we can stop the recording later
     res.json({ ...startRes.data, resourceId: resourceId, sid: startRes.data.sid });
   } catch (err) {
     console.error("❌ Error starting recording:", err.response?.data || err.message);

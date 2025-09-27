@@ -4,6 +4,7 @@ const { generateAgoraToken, startRecording } = require("../controllers/agoraCont
 const router = express.Router();
 
 router.get("/agora-token", generateAgoraToken);
-router.post("/startRecording",startRecording)
+router.post("/startRecording",startRecording);
+
 
 module.exports = router;

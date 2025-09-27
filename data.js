@@ -50,7 +50,9 @@ const courses = new mongoose.Schema({
             userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
             name: String,
             email: String,
+            img:String,
             bookedAt: { type: Date, default: Date.now }
+        
         }
     ],
 }, { timestamps: true });

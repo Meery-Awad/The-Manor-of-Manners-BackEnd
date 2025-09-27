@@ -10,7 +10,7 @@ const userRoutes = require("./routes/userRoutes");
 const courseRoutes = require("./routes/courseRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const agoraRoutes = require("./routes/agoraRoutes");
-const contactUs=require('./routes/contactUs')
+const contactUs = require('./routes/contactUs')
 const { User, Course } = require("./data");
 const deleteAllUsers = async () => {
   try {
@@ -29,8 +29,19 @@ const deleteAllCourses = async () => {
   }
 };
 const app = express();
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://the-manor-of-manners.netlify.app"
+];
+
 const corsOptions = {
-  origin: "*",
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
@@ -41,8 +52,8 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 mongoose.connect(process.env.MONGO_URI)
   .then(async () => {
     console.log("Connected to MongoDB");
-  // deleteAllUsers();
-  //  deleteAllCourses()
+    // deleteAllUsers();
+    //  deleteAllCourses()
     // حذف كل الـ collections داخل القاعدة
     // const collections = await mongoose.connection.db.collections();
     // for (let collection of collections) {
@@ -70,9 +81,9 @@ cron.schedule("0 0 * * *", async () => {
 
     for (const course of courses) {
       const filteredVideos = course.videos.filter(video => {
-        const videoDate = new Date(video.date); // نحول ال string لتاريخ
+        const videoDate = new Date(video.date); 
         const expireDate = new Date(videoDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-        return expireDate > now; // خليه إذا ما خلص أسبوع
+        return expireDate > now; 
       });
 
       if (filteredVideos.length !== course.videos.length) {
@@ -81,7 +92,7 @@ cron.schedule("0 0 * * *", async () => {
       }
     }
 
-    // كمان نشيل من عند اليوزر
+    
     const users = await User.find();
 
     for (const user of users) {
@@ -113,28 +124,33 @@ cron.schedule("0 0 * * *", async () => {
   }
 });
 
-
 app.use("/api/users", userRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/agora", agoraRoutes);
 app.use("/api/contactUs", contactUs);
 
+
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
 io.on("connection", (socket) => {
-  console.log("⚡ User connected:", socket.id);
-
+  let currentCourseId = null;
   socket.on("joinCourseRoom", (courseId) => {
     socket.join(courseId);
-    console.log(`📌 User ${socket.id} joined course ${courseId}`);
+    currentCourseId = courseId;
+    console.log(`User ${socket.id} joined course ${courseId}`);
   });
 
+
   socket.on("disconnect", () => {
-    console.log("❌ User disconnected:", socket.id);
+    console.log("User disconnected:", socket.id);
   });
+
+ 
+
 });
+
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

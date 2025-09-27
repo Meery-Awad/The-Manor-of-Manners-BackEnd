@@ -1,6 +1,4 @@
 const { Course, User } = require("../data");
-const dotenv = require("dotenv");
-dotenv.config({ path: "../.env" });
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const axios = require("axios");
 
@@ -100,8 +98,8 @@ exports.createCheckoutSession = async (req, res) => {
         },
       ],
       mode: "payment",
-      success_url: `http://localhost:3000/Success?courseId=${courseId}`,
-      cancel_url: "http://localhost:3000/cancel",
+      success_url: `https://the-manor-of-manners.netlify.app/Success?courseId=${courseId}`,
+      cancel_url: "https://the-manor-of-manners.netlify.app/cancel",
     });
 
     res.json({ url: session.url });
@@ -139,10 +137,9 @@ exports.createCheckoutSession = async (req, res) => {
 //   }
 // };
 // Update user course status (booking / watched)
-exports.updateUserCourseStatus = async (req, res) => {
+exports.updateUserCourseStatus = async (req, res) => { 
   try {
-    const { courseId, userId, key } = req.body;
-
+    const {userId, userImg, courseId , key  } = req.body;
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
     const course = await Course.findById(courseId);
@@ -150,10 +147,12 @@ exports.updateUserCourseStatus = async (req, res) => {
 
     // تعديل حالة الكورس داخل الـ array
     const courseIndex = user.courses.findIndex(c => c._id?.toString() === courseId);
+    
 
     if (courseIndex !== -1) {
 
       user.courses[courseIndex].status = key === '1' ? 'booking' : 'watched';
+      
 
     } else {
       const courseData = {
@@ -168,9 +167,12 @@ exports.updateUserCourseStatus = async (req, res) => {
     await user.save();
 
     const array = key === '1' ? course.bookedUsers : course.joinedUsers;
+
+   
     const alreadyUserAdded = array.some(u => u._id?.toString() === userId);
 
     if (!alreadyUserAdded) {
+      user.img = userImg
       array.push(user);
       await course.save();
     }
