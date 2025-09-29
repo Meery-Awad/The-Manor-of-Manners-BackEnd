@@ -82,13 +82,12 @@ const axios = require("axios");
 exports.createCheckoutSession = async (req, res) => {
   try {
     const { courseName, price, courseId } = req.body;
-
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
         {
           price_data: {
-            currency: "usd",
+            currency: "GBP",
             product_data: {
               name: courseName,
             },
