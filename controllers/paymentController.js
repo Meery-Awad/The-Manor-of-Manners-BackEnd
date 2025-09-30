@@ -98,7 +98,7 @@ exports.createCheckoutSession = async (req, res) => {
       ],
       mode: "payment",
       success_url: `https://the-manor-of-manners.netlify.app/Success?courseId=${courseId}`,
-      cancel_url: "https://the-manor-of-manners.netlify.app/cancel",
+      cancel_url: "https://the-manor-of-manners.netlify.app/Payment_Failed",
     });
 
     res.json({ url: session.url });
