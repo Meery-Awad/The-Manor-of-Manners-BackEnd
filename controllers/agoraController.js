@@ -113,10 +113,10 @@ exports.stopRecording = async (req, res) => {
       { headers: { Authorization: `Basic ${basicAuth}`, "Content-Type": "application/json" } }
     );
 
-    // احفظ رابط الفيديو لمدة أسبوع
+    // Save fo 1 week 
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 7);
-
+ 
     await Recording.create({
       channelName,
       videoUrl: stopRes.data.serverResponse.fileList[0],
