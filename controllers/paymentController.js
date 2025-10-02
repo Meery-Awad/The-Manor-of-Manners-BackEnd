@@ -1,4 +1,5 @@
 const { Course, User } = require("../data");
+
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const axios = require("axios");
 
@@ -91,7 +92,7 @@ exports.createCheckoutSession = async (req, res) => {
             product_data: {
               name: courseName,
             },
-            unit_amount: price * 100,
+            unit_amount: Math.round(price * 100),
           },
           quantity: 1,
         },
@@ -103,7 +104,7 @@ exports.createCheckoutSession = async (req, res) => {
 
     res.json({ url: session.url });
   } catch (err) {
-    console.error("Error creating checkout session:", err);
+    // console.error("Error creating checkout session:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -144,10 +145,8 @@ exports.updateUserCourseStatus = async (req, res) => {
     const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ success: false, message: "Course not found" });
 
-    // تعديل حالة الكورس داخل الـ array
     const courseIndex = user.courses.findIndex(c => c._id?.toString() === courseId);
     
-
     if (courseIndex !== -1) {
 
       user.courses[courseIndex].status = key === '1' ? 'booking' : 'watched';
