@@ -5,7 +5,7 @@ const { Course } = require("../data");
 
 router.get("/sitemap.xml", async (req, res) => {
   try {
-    const baseUrl = "https://the-manor-of-manners.netlify.app";
+    const baseUrl = "https://made-of-manners.netlify.app";
     const now = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
     const staticPages = [
