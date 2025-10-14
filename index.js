@@ -32,7 +32,7 @@ const deleteAllCourses = async () => {
 const app = express();
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://made-of-manners.netlify.app"
+  "https://madeformanners.com"
 ];
 
 const corsOptions = {

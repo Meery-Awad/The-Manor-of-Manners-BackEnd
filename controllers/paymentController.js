@@ -101,8 +101,8 @@ exports.createCheckoutSession = async (req, res) => {
        payment_intent_data: {
         setup_future_usage: "off_session",
       },
-      success_url: `https://made-of-manners.netlify.app/success?courseId=${courseId}`,
-      cancel_url: "https://made-of-manners.netlify.app/payment_failed",
+      success_url: `https://madeformanners.com/success?courseId=${courseId}`,
+      cancel_url: "https://madeformanners.com/payment_failed",
     });
 
     res.json({ url: session.url });
