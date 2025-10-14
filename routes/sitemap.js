@@ -15,7 +15,8 @@ router.get("/sitemap.xml", async (req, res) => {
       { loc: `${baseUrl}/contact`, changefreq: "weekly", priority: "0.80" },
       { loc: `${baseUrl}/login`, changefreq: "weekly", priority: "0.90" },
       { loc: `${baseUrl}/register`, changefreq: "weekly", priority: "0.90" },
-      { loc: `${baseUrl}/courses`, changefreq: "daily", priority: "1.00" }
+      { loc: `${baseUrl}/courses`, changefreq: "daily", priority: "1.00" },
+      { loc: `${baseUrl}/policy`, changefreq: "monthly", priority: "0.70" }
     ];
 
   
@@ -42,7 +43,7 @@ router.get("/sitemap.xml", async (req, res) => {
 
     xml += `</urlset>`;
 
-    // إرسال الملف مع الهيدر الصحيح
+    
     res.header("Content-Type", "application/xml; charset=UTF-8");
     res.send(xml);
 
