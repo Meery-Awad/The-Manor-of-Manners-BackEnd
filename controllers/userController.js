@@ -7,13 +7,6 @@ const multer = require("multer");
 const SECRET_KEY = process.env.JWT_SECRET;
 
 // Cloudinary config
-
-// cloudinary.config({
-//   cloud_name: 'dvaq8nyqk',
-//   api_key: '652612457517966',
-//   api_secret: 'YzPJAP_SFhH6HS4gv03MYqjdZVE',
-// });
-
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.CLOUD_API_KEY,
@@ -26,7 +19,7 @@ const storage = new CloudinaryStorage({
   params: async (req, file) => {
     let folder = "uploads";
     let resource_type = "auto"; // Cloudinary يحدد النوع تلقائياً (image/video)
-    
+
     if (file.mimetype.startsWith("image/")) folder = "user_images";
     if (file.mimetype.startsWith("video/")) folder = "course_videos";
 
@@ -34,14 +27,17 @@ const storage = new CloudinaryStorage({
   },
 });
 
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: { fileSize: 1024 * 1024 * 1024 * 5 }
+});
 
 exports.registerUser = async (req, res) => {
   try {
-   
+
     await upload.single("img")(req, res, async function (err) {
       if (err) {
-        console.error("Upload error:", err);
+        console.error("Upload error:", err.stack || err);
         return res.status(500).json({ message: "Image upload error" });
       }
 
@@ -62,7 +58,7 @@ exports.registerUser = async (req, res) => {
       const newUser = new User({
         name,
         email,
-        password, 
+        password,
         img: imgUrl,
         date,
         time,
@@ -74,7 +70,7 @@ exports.registerUser = async (req, res) => {
       res.json({ message: "User created successfully", user: newUser });
     });
   } catch (err) {
-    console.error("Error adding user:", err);
+    console.error("Error adding user:", err.stack || err);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -103,7 +99,7 @@ exports.loginUser = async (req, res) => {
       token,
     });
   } catch (err) {
-    console.error("Login error:", err);
+    console.error("Login error:", err.stack || err);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -129,7 +125,7 @@ exports.updateUser = async (req, res) => {
     await user.save();
     res.json({ message: "Profile updated successfully", user });
   } catch (err) {
-    console.error("Error updating profile:", err);
+    console.error("Error updating profile:", err.stack || err);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -138,10 +134,6 @@ exports.uploadVideoLink = [
   upload.single("video"),
 
   async (req, res) => {
-    // const courses = await Course.find();
-    //  const users = await User.find();
-    // console.log("Courses:", courses.map(c => c.toObject()));
-    // console.log("Users:", users.map(u => u.toObject()));
     try {
       const { courseId } = req.body;
 
@@ -150,11 +142,12 @@ exports.uploadVideoLink = [
         return res.status(400).json({ message: "No file uploaded" });
       }
       const videoUrl = req.file.path;
-   
+
       const course = await Course.findById(courseId);
       if (!course) return res.status(404).json({ message: "Course not found" });
+
       course.link = videoUrl;
-      course.save()
+      await course.save();
 
       const joinedUsersId = course.joinedUsers.map(u => u.userId);
 
@@ -166,16 +159,19 @@ exports.uploadVideoLink = [
         if (courseIndex !== -1) {
           user.courses[courseIndex].link = videoUrl;
 
-          await user.save();
-
+          try {
+            await user.save();
+          } catch (err) {
+            console.error(`Failed to save user ${user._id}:`, err.stack || err);
+          }
         }
       }
-      await course.save();
 
       res.json({ success: true, url: videoUrl });
     } catch (err) {
-      console.error("Error uploading video link:", err);
-      res.status(500).json({ message: "Server error" });
+      console.error("Error uploading video link:", err.stack || err);
+      const errorMessage = err.message || JSON.stringify(err, Object.getOwnPropertyNames(err));
+      res.status(500).json({ message: errorMessage });
     }
   }
 ];
@@ -192,7 +188,7 @@ exports.deleteUser = async (req, res) => {
 
     res.json({ message: "User deleted successfully" });
   } catch (err) {
-    console.error("Error deleting user:", err);
+    console.error("Error deleting user:", err.stack || err);
     res.status(500).json({ message: "Server error" });
   }
 };
